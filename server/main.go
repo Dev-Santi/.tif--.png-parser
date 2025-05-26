@@ -21,7 +21,6 @@ func main() {
 }
 
 func convertFiles(c *gin.Context) {
-	// Multipart form with multiple files, all named "tif"
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.String(http.StatusBadRequest, "Failed to parse multipart form: %v", err)
@@ -34,7 +33,6 @@ func convertFiles(c *gin.Context) {
 		return
 	}
 
-	// Buffer to write ZIP archive into memory
 	var zipBuffer bytes.Buffer
 	zipWriter := zip.NewWriter(&zipBuffer)
 
@@ -52,18 +50,15 @@ func convertFiles(c *gin.Context) {
 			return
 		}
 
-		// Prepare filename for PNG
 		base := strings.TrimSuffix(file.Filename, filepath.Ext(file.Filename))
 		pngName := base + ".png"
 
-		// Create a file inside the ZIP archive
 		zipFile, err := zipWriter.Create(pngName)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to create zip entry: %v", err)
 			return
 		}
 
-		// Encode PNG directly into the zip file
 		err = png.Encode(zipFile, img)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Failed to encode PNG %s: %v", pngName, err)
@@ -77,7 +72,6 @@ func convertFiles(c *gin.Context) {
 		return
 	}
 
-	// Send the ZIP file as response
 	c.Header("Content-Disposition", "attachment; filename=converted_images.zip")
 	c.Data(http.StatusOK, "application/zip", zipBuffer.Bytes())
 }
